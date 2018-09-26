@@ -17,7 +17,9 @@ int main(int argc, char **argv)
   size_t size;
   char *trace_file_name;
   int trace_view_on = 0;
+  int prediction_method = 0;
   int flush_counter = 4; //5 stage pipeline, so we have to move 4 instructions once trace is done
+  int data_hazard = 0;
   
   unsigned int cycle_number = 0;
 
@@ -29,6 +31,8 @@ int main(int argc, char **argv)
     
   trace_file_name = argv[1];
   if (argc == 3) trace_view_on = atoi(argv[2]) ;
+  
+  if (argc == 4) prediction_method = atoi(argv[3]);
 
   fprintf(stdout, "\n ** opening file %s\n", trace_file_name);
 
@@ -42,7 +46,12 @@ int main(int argc, char **argv)
   trace_init();
 
   while(1) {
-    size = trace_get_item(&tr_entry); /* put the instruction into a buffer */
+	if (!data_hazard){
+		size = trace_get_item(&tr_entry); /* put the instruction into a buffer */
+	}
+	else{
+		data_hazard = 0;
+	}
    
     if (!size && flush_counter==0) {       /* no more instructions (instructions) to simulate */
       printf("+ Simulation terminates at cycle : %u\n", cycle_number);
@@ -52,17 +61,43 @@ int main(int argc, char **argv)
       cycle_number++;
 
       /* move instructions one stage ahead */
-      WB = MEM;
-      MEM = EX;
-      EX = ID;
-      ID = IF;
+	  
+	  // Data Hazard Detection
+	  if (EX.type == ti_LOAD){
+		if (ID.type == ti_RTYPE || ID.type == ti_STORE || ID.type == ti_BRANCH){
+			if (EX.dReg == ID.sReg_a || EX.dReg == ID.sReg_b){
+				data_hazard = 1;
+				WB = MEM;
+				MEM = EX;
+				EX.type = ti_NOP;
+			}
+		}
+		else if (ID.type == ti_ITYPE || ID.type == ti_JRTYPE || ID.type == ti_LOAD){
+			if (EX.dReg == ID.sReg_a){
+				data_hazard = 1;
+				WB = MEM;
+				MEM = EX;
+				EX.type = ti_NOP;
+			}
+		}
+	  }
+	  if (!data_hazard){
+		  WB = MEM;
+		  MEM = EX;
+		  EX = ID;
+		  ID = IF;
+	  }
 
       if(!size){    /* if no more instructions in trace, reduce flush_counter */
         flush_counter--;   
       }
       else{   /* copy trace entry into IF stage */
-        memcpy(&IF, tr_entry , sizeof(IF));
-      }
+		if (!data_hazard){
+			memcpy(&IF, tr_entry , sizeof(IF));
+		}
+      }	  
+	  //data_hazard = 0;
+	  
 
       //printf("==============================================================================\n");
     }  
