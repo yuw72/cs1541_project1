@@ -4,7 +4,9 @@
    and execute using							
    ./pipeline  /afs/cs.pitt.edu/courses/1541/short_traces/sample.tr	0  
 ***************************************************************/
-// Team Names: Alex Blackson, Yuchao Wang, Nick West
+<<<<<<< HEAD
+//team name
+//modify
 #include <stdio.h>
 #include <inttypes.h>
 #include <arpa/inet.h>
