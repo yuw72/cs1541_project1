@@ -4,7 +4,8 @@
    and execute using							
    ./pipeline  /afs/cs.pitt.edu/courses/1541/short_traces/sample.tr	0  
 ***************************************************************/
-//team
+<<<<<<< HEAD
+//team name
 //modify
 #include <stdio.h>
 #include <inttypes.h>
