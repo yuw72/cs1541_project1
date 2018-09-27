@@ -4,7 +4,6 @@
    and execute using							
    ./pipeline  /afs/cs.pitt.edu/courses/1541/short_traces/sample.tr	0  
 ***************************************************************/
-<<<<<<< HEAD
 //team name
 //modify
 #include <stdio.h>
@@ -21,7 +20,10 @@ int main(int argc, char **argv)
   int trace_view_on = 0;
   int prediction_method = 0;
   int flush_counter = 4; //5 stage pipeline, so we have to move 4 instructions once trace is done
+  // data_hazard == 0 -> No data hazard detected
+  // data_hazard == 1 -> Data hazard detected
   int data_hazard = 0;
+
   
   unsigned int cycle_number = 0;
 
@@ -89,6 +91,16 @@ int main(int argc, char **argv)
 		  EX = ID;
 		  ID = IF;
 	  }
+	  
+	  // Handling control hazards
+		if (ID.type == ti_BRANCH){
+			if (prediction_method){
+				
+			}
+			else{
+
+			}
+		}
 
       if(!size){    /* if no more instructions in trace, reduce flush_counter */
         flush_counter--;   
@@ -98,7 +110,6 @@ int main(int argc, char **argv)
 			memcpy(&IF, tr_entry , sizeof(IF));
 		}
       }	  
-	  //data_hazard = 0;
 	  
 
       //printf("==============================================================================\n");
