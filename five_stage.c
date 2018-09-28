@@ -23,6 +23,7 @@ int main(int argc, char **argv)
   // data_hazard == 0 -> No data hazard detected
   // data_hazard == 1 -> Data hazard detected
   int data_hazard = 0;
+  int control_hazard = 0;
 
   
   unsigned int cycle_number = 0;
@@ -68,61 +69,92 @@ int main(int argc, char **argv)
       printf("+ Simulation terminates at cycle : %u\n", cycle_number);
       break;
     }
-    else{              /* move the pipeline forward */
+    else
+    {              /* move the pipeline forward */
       cycle_number++;
 
       /* move instructions one stage ahead */
-	  
+	/////////////////////////////////////////////////////////////////////  
 	  // Data Hazard Detection
-	  if (EX.type == ti_LOAD)
+	  if (ID.type == ti_LOAD)
     {
-  		if (data_hazard_condition(ID))
+  		if (data_hazard_condition(IF))
       {
-  			if (EX.dReg == ID.sReg_a || EX.dReg == ID.sReg_b){
+  			if (ID.dReg == IF.sReg_a || ID.dReg == IF.sReg_b){
   				data_hazard = 1;
   				WB = MEM;
   				MEM = EX;
-  				EX.type = ti_NOP;
+          EX = ID;
+  				ID.type = ti_NOP;
+          IF = IF;
   			}
   		}
   		else if (data_hazard_condition2(ID))
       {
-  			if (EX.dReg == ID.sReg_a)
+  			if (ID.dReg == IF.sReg_a)
         {
   				data_hazard = 1;
   				WB = MEM;
   				MEM = EX;
-  				EX.type = ti_NOP;
+  				ID.type = ti_NOP;
+          IF = IF;
   			}
   		}
 	  }
-	  if (!data_hazard){
-		  WB = MEM;
-		  MEM = EX;
-		  EX = ID;
-		  ID = IF;
-	  }
+	  
 	///////////////////////////////////////////////////////////////////////////////////////////
 
-	  // Handling control hazards
-		if (ID.type == ti_BRANCH){
+	 //  // Handling control hazards
+	 if (ID.type == ti_BRANCH)
+    {
 			if (prediction_method){
 				
 			}
 			else{
-
+          if(branch_not_taken(ID,IF))
+            {
+              control_hazard = 0;
+            }
+          else
+            {
+              
+              control_hazard = 1;
+              WB = MEM;
+              MEM = EX;
+              EX = ID;
+              ID.type = ti_NOP;
+              IF = IF;
+            }
 			}
 		}
 
-      if(!size){    /* if no more instructions in trace, reduce flush_counter */
-        flush_counter--;   
-      }
-      else{   /* copy trace entry into IF stage */
-		if (!data_hazard){
-			memcpy(&IF, tr_entry , sizeof(IF));
-		}
-      }	  
-	  
+
+/////////////////////////////
+    if (!data_hazard && !control_hazard)
+    {
+      WB = MEM;
+      MEM = EX;
+      EX = ID;
+      ID = IF;
+    }
+
+//////////////////////////////    
+
+
+    if(!size)
+    {    /* if no more instructions in trace, reduce flush_counter */
+      flush_counter--;   
+    }
+    else
+    {   /* copy trace entry into IF stage */
+  		if (!data_hazard)
+      {
+  			memcpy(&IF, tr_entry , sizeof(IF));
+  		}
+    }	
+
+//close control hazard.
+	  control_hazard = 0;
 
       //printf("==============================================================================\n");
     }  
@@ -181,5 +213,11 @@ int data_hazard_condition(struct instruction ID)
 int data_hazard_condition2(struct  instruction ID)
 {
  return (ID.type == ti_ITYPE || ID.type == ti_JRTYPE || ID.type == ti_LOAD); 
+}
+
+int branch_not_taken(struct  instruction ID, struct instruction IF)
+{
+ if(ID.PC+4==IF.PC) return 1;
+  else return 0; 
 }
 
