@@ -33,10 +33,17 @@ int main(int argc, char **argv)
     exit(0);
   }
     
-  trace_file_name = argv[1];
-  if (argc == 3) trace_view_on = atoi(argv[2]) ;
-  
-  if (argc == 4) prediction_method = atoi(argv[3]);
+  trace_file_name = argv[1];  
+  if (argc == 4) 
+  {
+    prediction_method = atoi(argv[3]);
+    trace_view_on = atoi(argv[2]) ;
+  }
+  else
+  {
+    printf("there should be 3 arguments");
+    exit(0);
+  }
 
   fprintf(stdout, "\n ** opening file %s\n", trace_file_name);
 
@@ -67,23 +74,27 @@ int main(int argc, char **argv)
       /* move instructions one stage ahead */
 	  
 	  // Data Hazard Detection
-	  if (EX.type == ti_LOAD){
-		if (ID.type == ti_RTYPE || ID.type == ti_STORE || ID.type == ti_BRANCH){
-			if (EX.dReg == ID.sReg_a || EX.dReg == ID.sReg_b){
-				data_hazard = 1;
-				WB = MEM;
-				MEM = EX;
-				EX.type = ti_NOP;
-			}
-		}
-		else if (ID.type == ti_ITYPE || ID.type == ti_JRTYPE || ID.type == ti_LOAD){
-			if (EX.dReg == ID.sReg_a){
-				data_hazard = 1;
-				WB = MEM;
-				MEM = EX;
-				EX.type = ti_NOP;
-			}
-		}
+	  if (EX.type == ti_LOAD)
+    {
+  		if (data_hazard_condition(ID))
+      {
+  			if (EX.dReg == ID.sReg_a || EX.dReg == ID.sReg_b){
+  				data_hazard = 1;
+  				WB = MEM;
+  				MEM = EX;
+  				EX.type = ti_NOP;
+  			}
+  		}
+  		else if (data_hazard_condition2(ID))
+      {
+  			if (EX.dReg == ID.sReg_a)
+        {
+  				data_hazard = 1;
+  				WB = MEM;
+  				MEM = EX;
+  				EX.type = ti_NOP;
+  			}
+  		}
 	  }
 	  if (!data_hazard){
 		  WB = MEM;
@@ -91,7 +102,8 @@ int main(int argc, char **argv)
 		  EX = ID;
 		  ID = IF;
 	  }
-	  
+	///////////////////////////////////////////////////////////////////////////////////////////
+
 	  // Handling control hazards
 		if (ID.type == ti_BRANCH){
 			if (prediction_method){
@@ -161,4 +173,13 @@ int main(int argc, char **argv)
   exit(0);
 }
 
+int data_hazard_condition(struct instruction ID)
+{
+  return (ID.type == ti_RTYPE || ID.type == ti_STORE || ID.type == ti_BRANCH);
+}
+
+int data_hazard_condition2(struct  instruction ID)
+{
+ return (ID.type == ti_ITYPE || ID.type == ti_JRTYPE || ID.type == ti_LOAD); 
+}
 
