@@ -60,14 +60,11 @@ int main(int argc, char **argv)
   //////////////////Start
   /////////////////////////////////////////////////////////////
   while(1) {
-	if (!data_hazard && (!control_hazard)){
+	if ((!data_hazard)&& (!control_hazard)){
 		size = trace_get_item(&tr_entry); /* put the instruction into a buffer */
 	}
-	else{
-		data_hazard = 0;
-    control_hazard = 0;
-	}
-   
+      data_hazard = 0;
+     control_hazard = 0;
     if (!size && flush_counter==0) {       /* no more instructions (instructions) to simulate */
       printf("+ Simulation terminates at cycle : %u\n", cycle_number);
       break;
@@ -114,6 +111,8 @@ int main(int argc, char **argv)
 				
 			}
 			else{
+
+              printf("ID PC %d  and IF PC %d",ID.PC,IF.PC );
           if(branch_not_taken(ID,IF))
             {
               control_hazard = 0;
@@ -155,7 +154,6 @@ int main(int argc, char **argv)
   			memcpy(&IF, tr_entry , sizeof(IF));
   		}
     }	
-
 
       //printf("==============================================================================\n");
     }  
@@ -206,19 +204,19 @@ int main(int argc, char **argv)
   exit(0);
 }
 
-int data_hazard_condition(struct instruction ID)
+int data_hazard_condition(struct instruction IF)
 {
-  return (ID.type == ti_RTYPE || ID.type == ti_STORE || ID.type == ti_BRANCH);
+  return (IF.type == ti_RTYPE || IF.type == ti_STORE || IF.type == ti_BRANCH);
 }
 
-int data_hazard_condition2(struct  instruction ID)
+int data_hazard_condition2(struct  instruction IF)
 {
- return (ID.type == ti_ITYPE || ID.type == ti_JRTYPE || ID.type == ti_LOAD); 
+ return (IF.type == ti_ITYPE || IF.type == ti_JRTYPE || IF.type == ti_LOAD); 
 }
 
 int branch_not_taken(struct  instruction ID, struct instruction IF)
 {
- if((ID.PC+4==IF.PC && ID.Addr!=IF.PC)||(ID.PC+4==IF.PC && ID.PC+4==ID.Addr)) return 1;
+ if((ID.PC+4==IF.PC))return 1;
   else return 0; 
 }
 
