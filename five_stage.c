@@ -89,13 +89,14 @@ int main(int argc, char **argv)
           IF = IF;
   			}
   		}
-  		else if (data_hazard_condition2(ID))
+  		else if (data_hazard_condition2(IF))
       {
   			if (ID.dReg == IF.sReg_a)
         {
   				data_hazard = 1;
   				WB = MEM;
   				MEM = EX;
+          EX = ID;
   				ID.type = ti_NOP;
           IF = IF;
   			}
@@ -112,7 +113,7 @@ int main(int argc, char **argv)
 			}
 			else{
 
-              printf("ID PC %d  and IF PC %d",ID.PC,IF.PC );
+              //printf("ID PC %d  and IF PC %d",ID.PC,IF.PC );
           if(branch_not_taken(ID,IF))
             {
               control_hazard = 0;
