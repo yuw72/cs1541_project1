@@ -56,13 +56,16 @@ int main(int argc, char **argv)
   }
 
   trace_init();
-
+//////////////////////////////////////////////////////////////////
+  //////////////////Start
+  /////////////////////////////////////////////////////////////
   while(1) {
-	if (!data_hazard){
+	if (!data_hazard && (!control_hazard)){
 		size = trace_get_item(&tr_entry); /* put the instruction into a buffer */
 	}
 	else{
 		data_hazard = 0;
+    control_hazard = 0;
 	}
    
     if (!size && flush_counter==0) {       /* no more instructions (instructions) to simulate */
@@ -107,7 +110,7 @@ int main(int argc, char **argv)
 	 //  // Handling control hazards
 	 if (ID.type == ti_BRANCH)
     {
-			if (prediction_method){
+    	if (prediction_method){
 				
 			}
 			else{
@@ -147,14 +150,12 @@ int main(int argc, char **argv)
     }
     else
     {   /* copy trace entry into IF stage */
-  		if (!data_hazard)
+  		if (!data_hazard && (!control_hazard))
       {
   			memcpy(&IF, tr_entry , sizeof(IF));
   		}
     }	
 
-//close control hazard.
-	  control_hazard = 0;
 
       //printf("==============================================================================\n");
     }  
@@ -217,7 +218,7 @@ int data_hazard_condition2(struct  instruction ID)
 
 int branch_not_taken(struct  instruction ID, struct instruction IF)
 {
- if(ID.PC+4==IF.PC) return 1;
+ if((ID.PC+4==IF.PC && ID.Addr!=IF.PC)||(ID.PC+4==IF.PC && ID.PC+4==ID.Addr)) return 1;
   else return 0; 
 }
 
