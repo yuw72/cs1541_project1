@@ -16,7 +16,26 @@ struct DataItem* dummyItem;
 struct DataItem* item;
 
 int hashCode(int key) {
-   return key % SIZE;
+   return five_bit_convert(key);
+}
+
+int five_bit_convert(key)
+{
+	int n=5;
+	int binaryNum[32]; 
+	int i = 0;
+	int j=0; 
+	while(j<32)
+	{
+		binaryNum[j]=0;
+		j++;
+	}
+    while (n > 0) { 
+        binaryNum[i] = n % 2; 
+        n = n / 2; 
+        i++; 
+    } 
+    return binaryNum[8]*pow(2,5)+binaryNum[7]*pow(2,4)+binaryNum[6]*pow(2,3)+binaryNum[5]*pow(2,2)+binaryNum[4]*pow(2,1)+binaryNum[3]*pow(2,0);
 }
 
 struct DataItem *search(int key) {
@@ -53,11 +72,12 @@ void display() {
    for(i = 0; i<SIZE; i++) {
 	
       if(hashArray[i] != NULL)
-         printf(" (%d,%d)",hashArray[i]->key,hashArray[i]->data);
+         printf(" (%d,%d,%d)",hashArray[i]->key,hashArray[i]->data,hashArray[i]->target_addr);
       else
          printf(" ~~ ");
    }
 	
    printf("\n");
 }
+
 
