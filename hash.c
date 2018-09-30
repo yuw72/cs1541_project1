@@ -6,8 +6,10 @@
 #define SIZE 64
 
 struct DataItem {
-   int data;   
    int key;
+   int data;
+   int target_addr;  
+   
 };
 
 struct DataItem* hashArray[SIZE]; 
@@ -30,11 +32,13 @@ struct DataItem *search(int key) {
      
 }
 
-void insert(int key,int data) {
+void insert(int key,int data, int target_addr ) {
 
    struct DataItem *item = (struct DataItem*) malloc(sizeof(struct DataItem));
-   item->data = data;  
    item->key = key;
+   item->data = data;
+   item->target_addr = target_addr;  
+   
 
    //get the hash 
    int hashIndex = hashCode(key);
