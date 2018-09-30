@@ -12,6 +12,14 @@
 #include "CPU.h" 
 #include "hash.c"
 
+void overwrite_hashtable(struct instruction ID, int is_taken)
+{
+   int key = ID.PC;
+   insert(key, is_taken, ID.Addr);
+}
+
+
+
 int main(int argc, char **argv)
 {
   struct instruction *tr_entry;
@@ -21,12 +29,14 @@ int main(int argc, char **argv)
   int trace_view_on = 0;
   int prediction_method = 0;
   int flush_counter = 4; //5 stage pipeline, so we have to move 4 instructions once trace is done
-  // data_hazard == 0 -> No data hazard detected
-  // data_hazard == 1 -> Data hazard detected
   int data_hazard = 0;
   int control_hazard = 0;
+  int taken_or_not = 0; // branch detection in IF stage
+  int overwrite = 0;  // hash table overwritten.
+  int is_match = 0;
 
-  
+
+
   unsigned int cycle_number = 0;
 
   if (argc == 1) {
@@ -109,13 +119,51 @@ int main(int argc, char **argv)
 	 //  // Handling control hazards
 	 
     	if (prediction_method){
-				//control_hazard = use_predictor(IF, ID);
+				
+        if(IF.type == ti_BRANCH)
+        {
+          if(nothing_in_hashtable(IF))
+          {
+            taken_or_not = 0;
+            overwrite = 1;
+          }
+          else
+          {
+             taken_or_not = search_hashtable(IF);
+            if(branch_PC_match(IF))
+              overwrite=1;
+            else             
+              overwrite=0;
+          }
+        }
+        if(ID.type == ti_BRANCH)
+        {
+           is_match = check_prediction(IF,ID,taken_or_not);
+            if(is_match)
+              control_hazard = 0;
+            else
+            {
+              control_hazard =1;
+              overwrite = 1;
+              taken_or_not =  abs(taken_or_not-1);
+                WB = MEM;
+                MEM = EX;
+                EX = ID;
+                ID.type = ti_NOP;
+                IF = IF;
+            }
+
+          if(overwrite == 1)
+              overwrite_hashtable(ID, taken_or_not);
+        }
 			}
+      /////////////////////////////////////////////////
+      ////////////////////////////////////////////
 			else{
           if (ID.type == ti_BRANCH)
           {
               //printf("ID PC %d  and IF PC %d",ID.PC,IF.PC );
-            if(branch_not_taken(ID,IF))
+            if(branch_not_taken(IF,ID))
               {
                 control_hazard = 0;
               }
@@ -217,13 +265,45 @@ int data_hazard_condition2(struct  instruction IF)
  return (IF.type == ti_ITYPE || IF.type == ti_JRTYPE || IF.type == ti_LOAD); 
 }
 
-int branch_not_taken(struct  instruction ID, struct instruction IF)
+int branch_not_taken(struct  instruction IF, struct instruction ID)
 {
  if((ID.PC+4==IF.PC))return 1;
   else return 0; 
 }
 
-// int use_predictor(struct instruction IF, struct  instruction ID)
-// {
-  
-// }
+int nothing_in_hashtable(struct instruction IF)
+{
+  int key = IF.PC;
+  item = search(key);
+  if(item != NULL)
+    return 0;
+  else
+    return 1;
+}
+
+int search_hashtable(struct instruction IF)
+{
+  int key=IF.PC;
+  item = search(key);
+  return item->data; 
+}
+
+int branch_PC_match(struct instruction IF)
+{
+  int key = IF.PC;
+  item = search(key);
+  return key==item->key;
+}
+
+int check_prediction(struct instruction IF, struct instruction ID, int taken_or_not)
+{
+   int truly_taken_or_not = branch_taken(IF,ID);
+   return taken_or_not == truly_taken_or_not;
+}
+
+int branch_taken(struct instruction IF, struct instruction ID)
+{
+  if((ID.PC+4!=IF.PC))return 1;
+  else return 0;  
+}
+
