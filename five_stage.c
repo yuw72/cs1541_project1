@@ -10,6 +10,7 @@
 #include <inttypes.h>
 #include <arpa/inet.h>
 #include "CPU.h" 
+#include "hash.c"
 
 int main(int argc, char **argv)
 {
@@ -57,7 +58,7 @@ int main(int argc, char **argv)
 
   trace_init();
 //////////////////////////////////////////////////////////////////
-  //////////////////Start
+  //////////////////Start ///////////////////////////////
   /////////////////////////////////////////////////////////////
   while(1) {
 	if ((!data_hazard)&& (!control_hazard)){
@@ -106,30 +107,31 @@ int main(int argc, char **argv)
 	///////////////////////////////////////////////////////////////////////////////////////////
 
 	 //  // Handling control hazards
-	 if (ID.type == ti_BRANCH)
-    {
+	 
     	if (prediction_method){
-				
+				//control_hazard = use_predictor(IF, ID);
 			}
 			else{
-
+          if (ID.type == ti_BRANCH)
+          {
               //printf("ID PC %d  and IF PC %d",ID.PC,IF.PC );
-          if(branch_not_taken(ID,IF))
-            {
-              control_hazard = 0;
-            }
-          else
-            {
-              
-              control_hazard = 1;
-              WB = MEM;
-              MEM = EX;
-              EX = ID;
-              ID.type = ti_NOP;
-              IF = IF;
-            }
+            if(branch_not_taken(ID,IF))
+              {
+                control_hazard = 0;
+              }
+            else
+              {
+                
+                control_hazard = 1;
+                WB = MEM;
+                MEM = EX;
+                EX = ID;
+                ID.type = ti_NOP;
+                IF = IF;
+              }
+          }
 			}
-		}
+		
 
 
 /////////////////////////////
@@ -221,3 +223,7 @@ int branch_not_taken(struct  instruction ID, struct instruction IF)
   else return 0; 
 }
 
+// int use_predictor(struct instruction IF, struct  instruction ID)
+// {
+  
+// }
