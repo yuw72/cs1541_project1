@@ -16,12 +16,14 @@ struct DataItem* dummyItem;
 struct DataItem* item;
 
 int hashCode(int key) {
-   return five_bit_convert(key);
+   int index=five_bit_convert(key);
+   //printf("index is %d",index);
+   return index;
 }
 
 int five_bit_convert(key)
 {
-	int n=5;
+	int n=key;
 	int binaryNum[32]; 
 	int i = 0;
 	int j=0; 
@@ -63,6 +65,7 @@ void insert(int key,int data, int target_addr ) {
 
    //move in array until an empty or deleted cell	
    hashArray[hashIndex] = item;
+   free(item);
 }
 
 
