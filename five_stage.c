@@ -12,6 +12,60 @@
 #include "CPU.h" 
 #include "hash.c"
 
+
+
+int data_hazard_condition(struct instruction IF)
+{
+  return (IF.type == ti_RTYPE || IF.type == ti_STORE || IF.type == ti_BRANCH);
+}
+
+int data_hazard_condition2(struct  instruction IF)
+{
+ return (IF.type == ti_ITYPE || IF.type == ti_JRTYPE || IF.type == ti_LOAD); 
+}
+
+int branch_not_taken(struct  instruction IF, struct instruction ID)
+{
+ if((ID.PC+4==IF.PC))return 1;
+  else return 0; 
+}
+
+int nothing_in_hashtable(struct instruction IF)
+{
+  int key = IF.PC;
+  item = search(key);
+  if(item != NULL)
+    return 0;
+  else
+    return 1;
+}
+
+int search_hashtable(struct instruction IF)
+{
+  int key=IF.PC;
+  item = search(key);
+  return item->data; 
+}
+
+int branch_PC_match(struct instruction IF)
+{
+  int key = IF.PC;
+  item = search(key);
+  return key==item->key;
+}
+
+int check_prediction(struct instruction IF, struct instruction ID, int taken_or_not)
+{
+   int truly_taken_or_not = branch_taken(IF,ID);
+   return taken_or_not == truly_taken_or_not;
+}
+
+int branch_taken(struct instruction IF, struct instruction ID)
+{
+  if((ID.PC+4!=IF.PC))return 1;
+  else return 0;  
+}
+
 void overwrite_hashtable(struct instruction ID, int is_taken)
 {
    int key = ID.PC;
@@ -253,57 +307,5 @@ int main(int argc, char **argv)
   trace_uninit();
 
   exit(0);
-}
-
-int data_hazard_condition(struct instruction IF)
-{
-  return (IF.type == ti_RTYPE || IF.type == ti_STORE || IF.type == ti_BRANCH);
-}
-
-int data_hazard_condition2(struct  instruction IF)
-{
- return (IF.type == ti_ITYPE || IF.type == ti_JRTYPE || IF.type == ti_LOAD); 
-}
-
-int branch_not_taken(struct  instruction IF, struct instruction ID)
-{
- if((ID.PC+4==IF.PC))return 1;
-  else return 0; 
-}
-
-int nothing_in_hashtable(struct instruction IF)
-{
-  int key = IF.PC;
-  item = search(key);
-  if(item != NULL)
-    return 0;
-  else
-    return 1;
-}
-
-int search_hashtable(struct instruction IF)
-{
-  int key=IF.PC;
-  item = search(key);
-  return item->data; 
-}
-
-int branch_PC_match(struct instruction IF)
-{
-  int key = IF.PC;
-  item = search(key);
-  return key==item->key;
-}
-
-int check_prediction(struct instruction IF, struct instruction ID, int taken_or_not)
-{
-   int truly_taken_or_not = branch_taken(IF,ID);
-   return taken_or_not == truly_taken_or_not;
-}
-
-int branch_taken(struct instruction IF, struct instruction ID)
-{
-  if((ID.PC+4!=IF.PC))return 1;
-  else return 0;  
 }
 
