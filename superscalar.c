@@ -10,35 +10,35 @@
 #include <arpa/inet.h>
 #include "CPU.h" 
 
-int has_two_readRegs(struct instruction IF)
-{
-  return (IF.type == ti_RTYPE || IF.type == ti_STORE || IF.type == ti_BRANCH);
-}
+//int has_two_readRegs(struct instruction IF)
+//{
+//  return (IF.type == ti_RTYPE || IF.type == ti_STORE || IF.type == ti_BRANCH);
+//}
 
-int has_one_readReg(struct instruction IF)
-{
- return (IF.type == ti_ITYPE || IF.type == ti_JRTYPE || IF.type == ti_LOAD); 
-}
+//int has_one_readReg(struct instruction IF)
+//{
+// return (IF.type == ti_ITYPE || IF.type == ti_JRTYPE || IF.type == ti_LOAD); 
+//}
 
-int has_dReg(struct instruction IF){
- return (IF.type == ti_RTYPE || IF.type == ti_ITYPE || IF.type == ti_LOAD)
-}
+//int has_dReg(struct instruction IF){
+// return (IF.type == ti_RTYPE || IF.type == ti_ITYPE || IF.type == ti_LOAD)
+//}
 
-int data_hazard1(struct instruction tr_entry, struct instruction tr_entry2){
-	if (has_dReg(tr_entry)){
-		if (has_two_readRegs(tr_entry2)){
-			if (tr_entry->dReg == tr_entry2->sReg_a || tr_entry->dReg == tr_entry2->sReg_b){
-				return 0;
-			}
-		}
-		else if (has_one_readReg(tr_entry2)){
-			if (tr_entry->dReg == tr_entry2->sReg_a){
-				return 0;
-			}
-		}
-	}
-	return 1;
-}
+//int data_hazard1(struct instruction tr_entry, struct instruction tr_entry2){
+//	if (has_dReg(tr_entry)){
+//		if (has_two_readRegs(tr_entry2)){
+//			if (tr_entry->dReg == tr_entry2->sReg_a || tr_entry->dReg == tr_entry2->sReg_b){
+//				return 0;
+//			}
+//		}
+//		else if (has_one_readReg(tr_entry2)){
+//			if (tr_entry->dReg == tr_entry2->sReg_a){
+//				return 0;
+//			}
+//		}
+//	}
+//	return 1;
+//}
 
 struct super_instruction move_to_upper_superscalar(struct instruction IF,struct super_instruction IF_S)
 {
@@ -87,7 +87,7 @@ int is_diff_pipeline(struct instruction *tr_entry, struct  instruction *tr_entry
 struct instruction auto_upper_separate(struct super_instruction IF_S)
 {
    struct instruction EX_temp;
-   if(IF_S.type2 != ti_LOAD && IF_S.type2 != ti_STORE)
+   if(IF_S.type2 != ti_LOAD && IF_S.type2 != ti_STORE && IF_S.type != ti_NOP)
    {
      EX_temp.type = IF_S.type2;
      EX_temp.sReg_a = IF_S.sReg_a2;
@@ -111,7 +111,7 @@ struct instruction auto_upper_separate(struct super_instruction IF_S)
 struct instruction auto_lower_separate(struct super_instruction IF_S)
 {
 	struct instruction EX_temp;
-   if(IF_S.type2 == ti_LOAD || IF_S.type2 == ti_STORE)
+   if(IF_S.type2 == ti_LOAD || IF_S.type2 == ti_STORE || IF_S.type2 == ti_NOP)
    {
      EX_temp.type = IF_S.type2;
      EX_temp.sReg_a = IF_S.sReg_a2;
@@ -207,7 +207,7 @@ int main(int argc, char **argv)
 	        size = trace_get_item(&tr_entry2);
 	        if(size) 
 	        {
-	          if(is_diff_pipeline(tr_entry, tr_entry2) && !data_hazard(tr_entry, tr_entry2) && IF_S.type1 != ti_JTYPE && IF_S.type1 != ti_BRANCH)
+	          if(is_diff_pipeline(tr_entry, tr_entry2) && IF_S.type1 != ti_JTYPE && IF_S.type1 != ti_BRANCH)
 		      {	
 		        memcpy(&IF, tr_entry2 , sizeof(IF));
 		        IF_S = move_to_lower_superscalar(IF, IF_S);
