@@ -10,29 +10,30 @@
 #include <arpa/inet.h>
 #include "CPU.h" 
 
-struct super_instruction move_to_superscalar(struct instruction IF,struct super_instruction IF_S)
+struct super_instruction move_to_upper_superscalar(struct instruction IF,struct super_instruction IF_S)
 {
-  if(IF.type == ti_LOAD || IF.type == ti_STORE)
-  {
+	  IF_S.type1 = IF.type;
+	  IF_S.sReg_a1 = IF.sReg_a;
+	  IF_S.sReg_b1 = IF.sReg_b;
+	  IF_S.dReg1 = IF.dReg;
+	  IF_S.PC1 = IF.PC;
+	  IF_S.Addr1 = IF.Addr;
+  
+  return IF_S;
+}
+
+struct super_instruction move_to_lower_superscalar(struct instruction IF,struct super_instruction IF_S)
+{
+  
     IF_S.type2 = IF.type;
     IF_S.sReg_a2 = IF.sReg_a;
     IF_S.sReg_b2 = IF.sReg_b;
     IF_S.dReg2 = IF.dReg;
     IF_S.PC2 = IF.PC;
     IF_S.Addr2 = IF.Addr; 
-  }
-  else
-  {
-	IF_S.type1 = IF.type;
-	IF_S.sReg_a1 = IF.sReg_a;
-	IF_S.sReg_b1 = IF.sReg_b;
-	IF_S.dReg1 = IF.dReg;
-	IF_S.PC1 = IF.PC;
-	IF_S.Addr1 = IF.Addr;
-  } 
+   
   return IF_S;
 }
-
 
 
 int is_diff_pipeline(struct instruction *tr_entry, struct  instruction *tr_entry2)
@@ -53,36 +54,61 @@ int is_diff_pipeline(struct instruction *tr_entry, struct  instruction *tr_entry
    }
 }
 
-struct instruction lower_separate(struct super_instruction IF_S)
+struct instruction auto_upper_separate(struct super_instruction IF_S)
 {
-	struct instruction EX_temp;
-	EX_temp.type = IF_S.type2;
-	EX_temp.sReg_a = IF_S.sReg_a2;
-	EX_temp.sReg_b = IF_S.sReg_b2;
-	EX_temp.dReg = IF_S.dReg2;
-	EX_temp.PC = IF_S.PC2;
-	EX_temp.Addr = IF_S.Addr2;
-	return EX_temp;
-
+   struct instruction EX_temp;
+   if(IF_S.type2 != ti_LOAD && IF_S.type2 != ti_STORE)
+   {
+     EX_temp.type = IF_S.type2;
+     EX_temp.sReg_a = IF_S.sReg_a2;
+     EX_temp.sReg_b = IF_S.sReg_b2;
+     EX_temp.dReg = IF_S.dReg2;
+     EX_temp.PC = IF_S.PC2;
+     EX_temp.Addr = IF_S.Addr2;
+   }
+   else
+   {
+     EX_temp.type = IF_S.type1;
+     EX_temp.sReg_a = IF_S.sReg_a1;
+     EX_temp.sReg_b = IF_S.sReg_b1;
+     EX_temp.dReg = IF_S.dReg1;
+     EX_temp.PC = IF_S.PC1;
+     EX_temp.Addr = IF_S.Addr1;   
+   }
+   return EX_temp;
 }
 
-struct instruction upper_separate(struct super_instruction IF_S)
+struct instruction auto_lower_separate(struct super_instruction IF_S)
 {
-	struct instruction EX_temp;
-	EX_temp.type = IF_S.type1;
-	EX_temp.sReg_a = IF_S.sReg_a1;
-	EX_temp.sReg_b = IF_S.sReg_b1;
-	EX_temp.dReg = IF_S.dReg1;
-	EX_temp.PC = IF_S.PC1;
-	EX_temp.Addr = IF_S.Addr1;
-	return EX_temp;
+	 struct instruction EX_temp;
+   if(IF_S.type2 == ti_LOAD || IF_S.type2 == ti_STORE)
+   {
+     EX_temp.type = IF_S.type2;
+     EX_temp.sReg_a = IF_S.sReg_a2;
+     EX_temp.sReg_b = IF_S.sReg_b2;
+     EX_temp.dReg = IF_S.dReg2;
+     EX_temp.PC = IF_S.PC2;
+     EX_temp.Addr = IF_S.Addr2;
+   }
+	 else
+   {
+     EX_temp.type = IF_S.type1;
+     EX_temp.sReg_a = IF_S.sReg_a1;
+     EX_temp.sReg_b = IF_S.sReg_b1;
+     EX_temp.dReg = IF_S.dReg1;
+     EX_temp.PC = IF_S.PC1;
+     EX_temp.Addr = IF_S.Addr1;   
+   }
+   return EX_temp;
 }
+
+
 
 int main(int argc, char **argv)
 {
   struct instruction *tr_entry;
   struct instruction *tr_entry2;
-  struct instruction IF, ID, EX, MEM, WB, EX_2, MEM_2, WB_2;
+  struct instruction IF, ID, EX, MEM, WB, EX_2, MEM_2, WB_2,WB_temp;
   struct super_instruction IF_S, ID_S;
   size_t size;
   char *trace_file_name;
@@ -135,8 +161,8 @@ int main(int argc, char **argv)
       WB_2 = MEM_2;
       MEM = EX;
       MEM_2 = EX_2;
-      EX = upper_separate(ID_S);
-      EX_2 = lower_separate(ID_S);
+      EX = auto_upper_separate(ID_S);
+      EX_2 = auto_lower_separate(ID_S);
       ID_S = IF_S;
 
       if(!size){    /* if no more instructions in trace, reduce flush_counter */
@@ -147,14 +173,14 @@ int main(int argc, char **argv)
         //move two instructions into one super-instruction
       //--data hazard and control hazard
 	        memcpy(&IF, tr_entry , sizeof(IF));
-	        IF_S = move_to_superscalar(IF,IF_S);
+	        IF_S = move_to_upper_superscalar(IF,IF_S);
 	        size = trace_get_item(&tr_entry2);
-	        if(!size) 
+	        if(size) 
 	        {
 	          if(is_diff_pipeline(tr_entry, tr_entry2) && IF_S.type1 != ti_JTYPE && IF_S.type1 != ti_BRANCH)
 		      {	
-		        memcpy(&IF, tr_entry , sizeof(IF));
-		        IF_S = move_to_superscalar(IF, IF_S);
+		        memcpy(&IF, tr_entry2 , sizeof(IF));
+		        IF_S = move_to_lower_superscalar(IF, IF_S);
 		        switch_buffer=0;
 		      }
 		      else 
@@ -169,7 +195,12 @@ int main(int argc, char **argv)
 	        }
 
          }
-
+      // if(IF_S.type1 == ti_STORE || IF_S.type1 == ti_LOAD)
+      // {
+      //   WB_temp = WB;
+      //   WB = WB_2;
+      //   WB_2 = WB_temp;
+      // }
       //printf("==============================================================================\n");
     }  
 
