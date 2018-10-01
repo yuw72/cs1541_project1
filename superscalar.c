@@ -10,6 +10,36 @@
 #include <arpa/inet.h>
 #include "CPU.h" 
 
+int has_two_readRegs(struct instruction IF)
+{
+  return (IF.type == ti_RTYPE || IF.type == ti_STORE || IF.type == ti_BRANCH);
+}
+
+int has_one_readReg(struct instruction IF)
+{
+ return (IF.type == ti_ITYPE || IF.type == ti_JRTYPE || IF.type == ti_LOAD); 
+}
+
+int has_dReg(struct instruction IF){
+ return (IF.type == ti_RTYPE || IF.type == ti_ITYPE || IF.type == ti_LOAD)
+}
+
+int data_hazard1(struct instruction tr_entry, struct instruction tr_entry2){
+	if (has_dReg(tr_entry)){
+		if (has_two_readRegs(tr_entry2)){
+			if (tr_entry->dReg == tr_entry2->sReg_a || tr_entry->dReg == tr_entry2->sReg_b){
+				return 0;
+			}
+		}
+		else if (has_one_readReg(tr_entry2)){
+			if (tr_entry->dReg == tr_entry2->sReg_a){
+				return 0;
+			}
+		}
+	}
+	return 1;
+}
+
 struct super_instruction move_to_superscalar(struct instruction IF,struct super_instruction IF_S)
 {
   if(IF.type == ti_LOAD || IF.type == ti_STORE)
@@ -145,30 +175,30 @@ int main(int argc, char **argv)
       else{   /* copy trace entry into IF stage */
         
         //move two instructions into one super-instruction
-      //--data hazard and control hazard
-	        memcpy(&IF, tr_entry , sizeof(IF));
-	        IF_S = move_to_superscalar(IF,IF_S);
-	        size = trace_get_item(&tr_entry2);
-	        if(!size) 
-	        {
-	          if(is_diff_pipeline(tr_entry, tr_entry2) && IF_S.type1 != ti_JTYPE && IF_S.type1 != ti_BRANCH)
-		      {	
-		        memcpy(&IF, tr_entry , sizeof(IF));
-		        IF_S = move_to_superscalar(IF, IF_S);
-		        switch_buffer=0;
-		      }
-		      else 
-		      {
-		      	IF_S.type2 = ti_NOP;
-	            switch_buffer = 1;
-	          }
-	        }
-	        else{	
-	          IF_S.type2 = ti_NOP;
-	          switch_buffer = 0;
-	        }
+		//--data hazard and control hazard
+			memcpy(&IF, tr_entry , sizeof(IF));
+			IF_S = move_to_superscalar(IF,IF_S);
+			size = trace_get_item(&tr_entry2);
+			if(!size) 
+			{
+			  if(is_diff_pipeline(tr_entry, tr_entry2) && !data_hazard(tr_entry, tr_entry2) && IF_S.type1 != ti_JTYPE && IF_S.type1 != ti_BRANCH)
+			  {	
+				memcpy(&IF, tr_entry , sizeof(IF));
+				IF_S = move_to_superscalar(IF, IF_S);
+				switch_buffer=0;
+			  }
+			  else 
+			  {
+				IF_S.type2 = ti_NOP;
+				switch_buffer = 1;
+			  }
+			}
+			else{	
+			  IF_S.type2 = ti_NOP;
+			  switch_buffer = 0;
+			}
 
-         }
+        }
 
       //printf("==============================================================================\n");
     }  
