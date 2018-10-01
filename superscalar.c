@@ -10,7 +10,7 @@
 #include <arpa/inet.h>
 #include "CPU.h" 
 
-struct instruction move_to_superscalar_1(IF, IF_S)
+struct instruction move_to_superscalar_1(struct instruction IF, struct super_instruction IF_S)
 {
   IF_S.type1 = IF.type;
   IF_S.sReg_a1 = IF.sReg_a;
@@ -21,7 +21,7 @@ struct instruction move_to_superscalar_1(IF, IF_S)
   return IF_S;
 }
 
-struct instruction move_to_superscalar_1(IF, IF_S)
+struct instruction move_to_superscalar_2(struct instruction IF, struct super_instruction IF_S)
 {
   IF_S.type2 = IF.type;
   IF_S.sReg_a2 = IF.sReg_a;
@@ -43,6 +43,7 @@ int main(int argc, char **argv)
   char *trace_file_name;
   int trace_view_on = 0;
   int flush_counter = 4; //5 stage pipeline, so we have to move 4 instructions once trace is done
+  int data_dependency;
   
   unsigned int cycle_number = 0;
 
@@ -94,7 +95,7 @@ int main(int argc, char **argv)
       else{   /* copy trace entry into IF stage */
         
         //move two instructions into one super-instruction
-      //--data hazard and control hazard
+        //--data hazard and control hazard
         memcpy(&IF, tr_entry , sizeof(IF));
         IF_S = move_to_superscalar_1(IF,IF_S);
         if(!size) 
