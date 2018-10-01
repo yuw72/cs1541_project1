@@ -87,7 +87,7 @@ int is_diff_pipeline(struct instruction *tr_entry, struct  instruction *tr_entry
 struct instruction auto_upper_separate(struct super_instruction IF_S)
 {
    struct instruction EX_temp;
-   if(IF_S.type2 != ti_LOAD && IF_S.type2 != ti_STORE && IF_S.type != ti_NOP)
+   if(IF_S.type2 != ti_LOAD && IF_S.type2 != ti_STORE && IF_S.type2 != ti_NOP)
    {
      EX_temp.type = IF_S.type2;
      EX_temp.sReg_a = IF_S.sReg_a2;
@@ -207,24 +207,24 @@ int main(int argc, char **argv)
 	        size = trace_get_item(&tr_entry2);
 	        if(size) 
 	        {
-	          if(is_diff_pipeline(tr_entry, tr_entry2) && IF_S.type1 != ti_JTYPE && IF_S.type1 != ti_BRANCH)
-		      {	
-		        memcpy(&IF, tr_entry2 , sizeof(IF));
-		        IF_S = move_to_lower_superscalar(IF, IF_S);
-		        switch_buffer=0;
-		      }
-		      else 
-		      {
-		      	IF_S.type2 = ti_NOP;
-	            switch_buffer = 1;
+	          if(is_diff_pipeline(tr_entry, tr_entry2)  && IF_S.type1 != ti_JTYPE && IF_S.type1 != ti_BRANCH)
+		        {	
+		          memcpy(&IF, tr_entry2 , sizeof(IF));
+		          IF_S = move_to_lower_superscalar(IF, IF_S);
+		          switch_buffer=0;
+		        }
+		        else 
+		        {
+		      	  IF_S.type2 = ti_NOP;
+				  switch_buffer = 1;
 	          }
 	        }
-	        else{	
+	       else{	
 	          IF_S.type2 = ti_NOP;
 	          switch_buffer = 0;
 	        }
 
-         }
+      }
       // if(IF_S.type1 == ti_STORE || IF_S.type1 == ti_LOAD)
       // {
       //   WB_temp = WB;
@@ -279,34 +279,34 @@ int main(int argc, char **argv)
           break;
         case ti_RTYPE: /* registers are translated for printing by subtracting offset  */
           printf("[cycle %d] RTYPE:",cycle_number) ;
-          printf(" (PC: %d)(sReg_a: %d)(sReg_b: %d)(dReg: %d) \n", WB.PC, WB.sReg_a, WB.sReg_b, WB.dReg);
+          printf(" (PC: %d)(sReg_a: %d)(sReg_b: %d)(dReg: %d) \n", WB_2.PC, WB_2.sReg_a, WB_2.sReg_b, WB_2.dReg);
           break;
         case ti_ITYPE:
           printf("[cycle %d] ITYPE:",cycle_number) ;
-          printf(" (PC: %d)(sReg_a: %d)(dReg: %d)(addr: %d)\n", WB.PC, WB.sReg_a, WB.dReg, WB.Addr);
+          printf(" (PC: %d)(sReg_a: %d)(dReg: %d)(addr: %d)\n", WB_2.PC, WB_2.sReg_a, WB_2.dReg, WB_2.Addr);
           break;
         case ti_LOAD:
           printf("[cycle %d] LOAD:",cycle_number) ;      
-          printf(" (PC: %d)(sReg_a: %d)(dReg: %d)(addr: %d)\n", WB.PC, WB.sReg_a, WB.dReg, WB.Addr);
+          printf(" (PC: %d)(sReg_a: %d)(dReg: %d)(addr: %d)\n", WB_2.PC, WB_2.sReg_a, WB_2.dReg, WB_2.Addr);
           break;
         case ti_STORE:
           printf("[cycle %d] STORE:",cycle_number) ;      
-          printf(" (PC: %d)(sReg_a: %d)(sReg_b: %d)(addr: %d)\n", WB.PC, WB.sReg_a, WB.sReg_b, WB.Addr);
+          printf(" (PC: %d)(sReg_a: %d)(sReg_b: %d)(addr: %d)\n", WB_2.PC, WB_2.sReg_a, WB_2.sReg_b, WB_2.Addr);
           break;
         case ti_BRANCH:
           printf("[cycle %d] BRANCH:",cycle_number) ;
-          printf(" (PC: %d)(sReg_a: %d)(sReg_b: %d)(addr: %d)\n", WB.PC, WB.sReg_a, WB.sReg_b, WB.Addr);
+          printf(" (PC: %d)(sReg_a: %d)(sReg_b: %d)(addr: %d)\n", WB_2.PC, WB_2.sReg_a, WB_2.sReg_b, WB_2.Addr);
           break;
         case ti_JTYPE:
           printf("[cycle %d] JTYPE:",cycle_number) ;
-          printf(" (PC: %d)(addr: %d)\n", WB.PC,WB.Addr);
+          printf(" (PC: %d)(addr: %d)\n", WB_2.PC,WB_2.Addr);
           break;
         case ti_SPECIAL:
           printf("[cycle %d] SPECIAL:\n",cycle_number) ;      	
           break;
         case ti_JRTYPE:
           printf("[cycle %d] JRTYPE:",cycle_number) ;
-          printf(" (PC: %d) (sReg_a: %d)(addr: %d)\n", WB.PC, WB.dReg, WB.Addr);
+          printf(" (PC: %d) (sReg_a: %d)(addr: %d)\n", WB_2.PC, WB_2.dReg, WB_2.Addr);
           break;
       }
     }
