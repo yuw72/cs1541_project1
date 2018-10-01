@@ -10,10 +10,35 @@
 #include <arpa/inet.h>
 #include "CPU.h" 
 
+struct instruction move_to_superscalar_1(IF, IF_S)
+{
+  IF_S.type1 = IF.type;
+  IF_S.sReg_a1 = IF.sReg_a;
+  IF_S.sReg_b1 = IF.sReg_b;
+  IF_S.dReg1 = IF.dReg;
+  IF_S.PC1 = IF.PC;
+  IF_S.Addr1 = IF.Addr; 
+  return IF_S;
+}
+
+struct instruction move_to_superscalar_1(IF, IF_S)
+{
+  IF_S.type2 = IF.type;
+  IF_S.sReg_a2 = IF.sReg_a;
+  IF_S.sReg_b2 = IF.sReg_b;
+  IF_S.dReg2 = IF.dReg;
+  IF_S.PC2 = IF.PC;
+  IF_S.Addr2 = IF.Addr; 
+  return IF_S;
+}
+
+
 int main(int argc, char **argv)
 {
   struct instruction *tr_entry;
+  struct instruction *tr_entry2;
   struct instruction IF, ID, EX, MEM, WB;
+  struct super_instruction IF_S, ID_S, EX_2, MEM_2, WB_2;
   size_t size;
   char *trace_file_name;
   int trace_view_on = 0;
@@ -43,7 +68,10 @@ int main(int argc, char **argv)
 
   while(1) {
     size = trace_get_item(&tr_entry); /* put the instruction into a buffer */
-   
+    //put one more instruction in the buffer;
+    
+
+ 	
     if (!size && flush_counter==0) {       /* no more instructions (instructions) to simulate */
       printf("+ Simulation terminates at cycle : %u\n", cycle_number);
       break;
@@ -53,15 +81,37 @@ int main(int argc, char **argv)
 
       /* move instructions one stage ahead */
       WB = MEM;
+      WB_2 = MEM_2;
       MEM = EX;
-      EX = ID;
-      ID = IF;
+      MEM_2 = EX_2;
+      EX = upper_separate(ID_S);
+      EX_2 = lower_separate(ID_S);
+      ID_S = IF_S;
 
       if(!size){    /* if no more instructions in trace, reduce flush_counter */
         flush_counter--;   
       }
       else{   /* copy trace entry into IF stage */
+        
+        //move two instructions into one super-instruction
+      //--data hazard and control hazard
         memcpy(&IF, tr_entry , sizeof(IF));
+        IF_S = move_to_superscalar_1(IF,IF_S);
+        if(!size) 
+        {
+          trace_get_item(&tr_entry);
+          if(!data_dependency && is_diff_type() && IF_S.type != ti_JTYPE && IF_S.type != ti_BRANCH )
+	      {	
+	       
+	      }
+	      else IF_S.type2 = ti_NOP;
+        	
+	       memcpy(&IF, tr_entry , sizeof(IF, IF_S));
+	       IF_S = move_to_superscalar_2(IF, IF_S);
+
+
+        }
+        
       }
 
       //printf("==============================================================================\n");
