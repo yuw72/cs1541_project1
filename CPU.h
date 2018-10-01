@@ -5,14 +5,14 @@
 // this is tpts
 enum opcode {
 	ti_NOP = 0,
-	ti_RTYPE,
-	ti_ITYPE,
-	ti_LOAD,
-	ti_STORE,
-	ti_BRANCH,
-	ti_JTYPE,
-	ti_SPECIAL,
-	ti_JRTYPE
+	ti_RTYPE, //1
+	ti_ITYPE, //1
+	ti_LOAD,  //2
+	ti_STORE, //2
+	ti_BRANCH,//1
+	ti_JTYPE, //1
+	ti_SPECIAL,//1
+	ti_JRTYPE  //1
 };
 
 struct instruction {
@@ -24,15 +24,23 @@ struct instruction {
 	unsigned int Addr;			// mem. address
 };
 
+<<<<<<< HEAD
+struct super_instruction {
+=======
 
 struct super_instruction{
 	unsigned char type;
+>>>>>>> bb70eb3322a81e8d4270420c42f5f3617e11c0d8
 	unsigned char type1;			// see above
 	unsigned char sReg_a1;			// 1st operand
 	unsigned char sReg_b1;			// 2nd operand
 	unsigned char dReg1;			// dest. operand
 	unsigned int PC1;			// program counter
 	unsigned int Addr1;			// mem. address
+<<<<<<< HEAD
+	//----------------------------------------------
+=======
+>>>>>>> bb70eb3322a81e8d4270420c42f5f3617e11c0d8
 	unsigned char type2;			// see above
 	unsigned char sReg_a2;			// 1st operand
 	unsigned char sReg_b2;			// 2nd operand
