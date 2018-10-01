@@ -37,7 +37,7 @@ int five_bit_convert(key)
         n = n / 2; 
         i++; 
     } 
-    return binaryNum[8]*pow(2,5)+binaryNum[7]*pow(2,4)+binaryNum[6]*pow(2,3)+binaryNum[5]*pow(2,2)+binaryNum[4]*pow(2,1)+binaryNum[3]*pow(2,0);
+    return binaryNum[9]*pow(2,5)+binaryNum[8]*pow(2,4)+binaryNum[7]*pow(2,3)+binaryNum[6]*pow(2,2)+binaryNum[5]*pow(2,1)+binaryNum[4]*pow(2,0);
 }
 
 struct DataItem *search(int key) {
