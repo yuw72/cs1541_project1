@@ -24,23 +24,15 @@ struct instruction {
 	unsigned int Addr;			// mem. address
 };
 
-<<<<<<< HEAD
-struct super_instruction {
-=======
 
 struct super_instruction{
-	unsigned char type;
->>>>>>> bb70eb3322a81e8d4270420c42f5f3617e11c0d8
 	unsigned char type1;			// see above
 	unsigned char sReg_a1;			// 1st operand
 	unsigned char sReg_b1;			// 2nd operand
 	unsigned char dReg1;			// dest. operand
 	unsigned int PC1;			// program counter
 	unsigned int Addr1;			// mem. address
-<<<<<<< HEAD
 	//----------------------------------------------
-=======
->>>>>>> bb70eb3322a81e8d4270420c42f5f3617e11c0d8
 	unsigned char type2;			// see above
 	unsigned char sReg_a2;			// 1st operand
 	unsigned char sReg_b2;			// 2nd operand
