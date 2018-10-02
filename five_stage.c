@@ -107,7 +107,7 @@ int main(int argc, char **argv)
   }
   else
   {
-    printf("there should be 3 arguments");
+    printf("\nThere should be 3 arguments, please run again\n");
     exit(0);
   }
 
@@ -128,8 +128,9 @@ int main(int argc, char **argv)
 	if ((!data_hazard)&& (!control_hazard)){
 		size = trace_get_item(&tr_entry); /* put the instruction into a buffer */
 	}
-      data_hazard = 0;
-     control_hazard = 0;
+    data_hazard = 0;
+    control_hazard = 0;
+	
     if (!size && flush_counter==0) {       /* no more instructions (instructions) to simulate */
       printf("+ Simulation terminates at cycle : %u\n", cycle_number);
       break;
@@ -141,38 +142,38 @@ int main(int argc, char **argv)
       /* move instructions one stage ahead */
 	/////////////////////////////////////////////////////////////////////  
 	  // Data Hazard Detection
-	  if (ID.type == ti_LOAD)
+	if (ID.type == ti_LOAD)
     {
-  		if (data_hazard_condition(IF))
-      {
-  			if (ID.dReg == IF.sReg_a || ID.dReg == IF.sReg_b){
-  				data_hazard = 1;
-  				WB = MEM;
-  				MEM = EX;
-          EX = ID;
-  				ID.type = ti_NOP;
-          IF = IF;
-  			}
-  		}
-  		else if (data_hazard_condition2(IF))
-      {
+		if (data_hazard_condition(IF))
+       {
+			if (ID.dReg == IF.sReg_a || ID.dReg == IF.sReg_b){
+				data_hazard = 1;
+				WB = MEM;
+				MEM = EX;
+				EX = ID;
+				ID.type = ti_NOP;
+				IF = IF;
+			}
+		}
+		else if (data_hazard_condition2(IF))
+		{
   			if (ID.dReg == IF.sReg_a)
-        {
-  				data_hazard = 1;
-  				WB = MEM;
-  				MEM = EX;
-          EX = ID;
-  				ID.type = ti_NOP;
-          IF = IF;
-  			}
+			{
+				data_hazard = 1;
+				WB = MEM;
+				MEM = EX;
+				EX = ID;
+				ID.type = ti_NOP;
+				IF = IF;
+			}
   		}
-	  }
+	}
 	  
 	///////////////////////////////////////////////////////////////////////////////////////////
 
-	 //  // Handling control hazards
+	//// Handling control hazards
 	 
-    	if (prediction_method){
+    if (prediction_method){
 				
         if(IF.type == ti_BRANCH)
         {
@@ -210,15 +211,15 @@ int main(int argc, char **argv)
           if(overwrite == 1)
               overwrite_hashtable(ID, taken_or_not);
         }
-			}
+	}
       /////////////////////////////////////////////////
       ////////////////////////////////////////////
-			else{
+	else{
           if (ID.type == ti_BRANCH)
           {
               //printf("ID PC %d  and IF PC %d",ID.PC,IF.PC );
             if(branch_not_taken(IF,ID))
-              {
+            {
                 control_hazard = 0;
               }
             else
@@ -232,17 +233,17 @@ int main(int argc, char **argv)
                 IF = IF;
               }
           }
-			}
+		}
 		
 
 
 /////////////////////////////
     if (!data_hazard && !control_hazard)
     {
-      WB = MEM;
-      MEM = EX;
-      EX = ID;
-      ID = IF;
+	  WB = MEM;
+	  MEM = EX;
+	  EX = ID;
+	  ID = IF;
     }
 
 //////////////////////////////    
@@ -255,7 +256,7 @@ int main(int argc, char **argv)
     else
     {   /* copy trace entry into IF stage */
   		if (!data_hazard && (!control_hazard))
-      {
+        {
   			memcpy(&IF, tr_entry , sizeof(IF));
   		}
     }	
