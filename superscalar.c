@@ -159,47 +159,48 @@ int is_diff_pipeline(struct instruction *tr_entry, struct  instruction *tr_entry
 struct instruction auto_upper_separate(struct super_instruction IF_S)
 {
    struct instruction EX_temp;
-   if(IF_S.type2 != ti_LOAD && IF_S.type2 != ti_STORE && IF_S.type2 != ti_NOP)
-   {
-     EX_temp.type = IF_S.type2;
-     EX_temp.sReg_a = IF_S.sReg_a2;
-     EX_temp.sReg_b = IF_S.sReg_b2;
-     EX_temp.dReg = IF_S.dReg2;
-     EX_temp.PC = IF_S.PC2;
-     EX_temp.Addr = IF_S.Addr2;
-   }
-   else
+   if(IF_S.type1 == ti_RTYPE || IF_S.type1 == ti_ITYPE || IF_S.type1 == ti_BRANCH || IF_S.type1 == ti_JTYPE || IF_S.type1 == ti_SPECIAL || IF_S.type1 == ti_JRTYPE)
    {
      EX_temp.type = IF_S.type1;
      EX_temp.sReg_a = IF_S.sReg_a1;
      EX_temp.sReg_b = IF_S.sReg_b1;
      EX_temp.dReg = IF_S.dReg1;
      EX_temp.PC = IF_S.PC1;
-     EX_temp.Addr = IF_S.Addr1;   
+     EX_temp.Addr = IF_S.Addr1;
    }
+   else
+   {
+     EX_temp.type = IF_S.type2;
+     EX_temp.sReg_a = IF_S.sReg_a2;
+     EX_temp.sReg_b = IF_S.sReg_b2;
+     EX_temp.dReg = IF_S.dReg2;
+     EX_temp.PC = IF_S.PC2;
+     EX_temp.Addr = IF_S.Addr2;   
+   }
+
    return EX_temp;
 }
 
 struct instruction auto_lower_separate(struct super_instruction IF_S)
 {
-	struct instruction EX_temp;
-   if(IF_S.type2 == ti_LOAD || IF_S.type2 == ti_STORE || IF_S.type2 == ti_NOP)
-   {
-     EX_temp.type = IF_S.type2;
-     EX_temp.sReg_a = IF_S.sReg_a2;
-     EX_temp.sReg_b = IF_S.sReg_b2;
-     EX_temp.dReg = IF_S.dReg2;
-     EX_temp.PC = IF_S.PC2;
-     EX_temp.Addr = IF_S.Addr2;
-   }
-	 else
+    struct instruction EX_temp;
+   if(IF_S.type1 == ti_LOAD || IF_S.type1 == ti_STORE || IF_S.type1 == ti_NOP)
    {
      EX_temp.type = IF_S.type1;
      EX_temp.sReg_a = IF_S.sReg_a1;
      EX_temp.sReg_b = IF_S.sReg_b1;
      EX_temp.dReg = IF_S.dReg1;
      EX_temp.PC = IF_S.PC1;
-     EX_temp.Addr = IF_S.Addr1;   
+     EX_temp.Addr = IF_S.Addr1;
+   }
+     else
+   {
+     EX_temp.type = IF_S.type2;
+     EX_temp.sReg_a = IF_S.sReg_a2;
+     EX_temp.sReg_b = IF_S.sReg_b2;
+     EX_temp.dReg = IF_S.dReg2;
+     EX_temp.PC = IF_S.PC2;
+     EX_temp.Addr = IF_S.Addr2;   
    }
    return EX_temp;
 }
