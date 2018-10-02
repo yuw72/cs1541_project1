@@ -15,9 +15,29 @@ int has_two_readRegs(struct instruction IF)
 	return (IF.type == ti_RTYPE || IF.type == ti_STORE || IF.type == ti_BRANCH);
 }
 
+int has_two_readRegs1(struct super_instruction IF_S)
+{
+  return (IF_S.type1 == ti_RTYPE || IF_S.type1 == ti_STORE || IF_S.type1 == ti_BRANCH);
+}
+
+int has_two_readRegs2(struct super_instruction IF_S)
+{
+  return (IF_S.type2 == ti_RTYPE || IF_S.type2 == ti_STORE || IF_S.type2 == ti_BRANCH);
+}
+
 int has_one_readReg(struct instruction IF)
 {
  return (IF.type == ti_ITYPE || IF.type == ti_JRTYPE || IF.type == ti_LOAD); 
+}
+
+int has_one_readReg1(struct super_instruction IF_S)
+{
+ return (IF_S.type1 == ti_ITYPE || IF_S.type1 == ti_JRTYPE || IF_S.type1 == ti_LOAD); 
+}
+
+int has_one_readReg2(struct super_instruction IF_S)
+{
+ return (IF_S.type2 == ti_ITYPE || IF_S.type2 == ti_JRTYPE || IF_S.type2 == ti_LOAD); 
 }
 
 int has_dReg(struct instruction IF){
@@ -38,6 +58,58 @@ int data_hazard1(struct instruction * tr_entry, struct instruction * tr_entry2){
 		}
 	}
 	return 0;
+}
+
+int load_use_detect(struct super_instruction IF_S, struct super_instruction ID_S){
+  if (ID_S.type1 == ti_LOAD){
+    if (has_one_readReg1(IF_S)){
+      if (ID_S.dReg1 == IF_S.sReg_a1)
+        return 1;
+    }
+    else if(has_two_readRegs1(IF_S)){
+      if (ID_S.dReg1 == IF_S.sReg_a1 || ID_S.dReg1 == IF_S.sReg_b1)
+        return 0;
+    }
+    if (has_one_readReg2(IF_S)){
+      if (ID_S.dReg1 == IF_S.sReg_a2)
+        return 1;
+    }
+    else if(has_two_readRegs2(IF_S)){
+      if (ID_S.dReg1 == IF_S.sReg_a2 || ID_S.dReg1 == IF_S.sReg_b2)
+        return 0;
+    }
+  }
+  else{
+    if (has_one_readReg1(IF_S)){
+      if (ID_S.dReg2 == IF_S.sReg_a1)
+        return 1;
+    }
+    else if(has_two_readRegs1(IF_S)){
+      if (ID_S.dReg2 == IF_S.sReg_a1 || ID_S.dReg2 == IF_S.sReg_b1)
+        return 0;
+    }
+    if (has_one_readReg2(IF_S)){
+      if (ID_S.dReg2 == IF_S.sReg_a2)
+        return 1;
+    }
+    else if(has_two_readRegs2(IF_S)){
+      if (ID_S.dReg2 == IF_S.sReg_a2 || ID_S.dReg2 == IF_S.sReg_b2)
+        return 0;
+    }
+  }
+  return 0;
+}
+
+int control_hazard_detect(struct super_instruction IF_S, struct super_instruction ID_S){
+  if (ID_S.type1 == ti_BRANCH){
+    if (IF_S.PC1 != (ID_S.PC1 + 4))
+      return 1;
+  }
+  else{
+    if (IF_S.PC1 != (ID_S.PC2 + 4))
+      return 1;
+  }
+  return 0;
 }
 
 struct super_instruction move_to_upper_superscalar(struct instruction IF,struct super_instruction IF_S)
@@ -87,47 +159,48 @@ int is_diff_pipeline(struct instruction *tr_entry, struct  instruction *tr_entry
 struct instruction auto_upper_separate(struct super_instruction IF_S)
 {
    struct instruction EX_temp;
-   if(IF_S.type2 != ti_LOAD && IF_S.type2 != ti_STORE && IF_S.type2 != ti_NOP)
-   {
-     EX_temp.type = IF_S.type2;
-     EX_temp.sReg_a = IF_S.sReg_a2;
-     EX_temp.sReg_b = IF_S.sReg_b2;
-     EX_temp.dReg = IF_S.dReg2;
-     EX_temp.PC = IF_S.PC2;
-     EX_temp.Addr = IF_S.Addr2;
-   }
-   else
+   if(IF_S.type1 == ti_RTYPE || IF_S.type1 == ti_ITYPE || IF_S.type1 == ti_BRANCH || IF_S.type1 == ti_JTYPE || IF_S.type1 == ti_SPECIAL || IF_S.type1 == ti_JRTYPE)
    {
      EX_temp.type = IF_S.type1;
      EX_temp.sReg_a = IF_S.sReg_a1;
      EX_temp.sReg_b = IF_S.sReg_b1;
      EX_temp.dReg = IF_S.dReg1;
      EX_temp.PC = IF_S.PC1;
-     EX_temp.Addr = IF_S.Addr1;   
+     EX_temp.Addr = IF_S.Addr1;
    }
+   else
+   {
+     EX_temp.type = IF_S.type2;
+     EX_temp.sReg_a = IF_S.sReg_a2;
+     EX_temp.sReg_b = IF_S.sReg_b2;
+     EX_temp.dReg = IF_S.dReg2;
+     EX_temp.PC = IF_S.PC2;
+     EX_temp.Addr = IF_S.Addr2;   
+   }
+
    return EX_temp;
 }
 
 struct instruction auto_lower_separate(struct super_instruction IF_S)
 {
-	struct instruction EX_temp;
-   if(IF_S.type2 == ti_LOAD || IF_S.type2 == ti_STORE || IF_S.type2 == ti_NOP)
-   {
-     EX_temp.type = IF_S.type2;
-     EX_temp.sReg_a = IF_S.sReg_a2;
-     EX_temp.sReg_b = IF_S.sReg_b2;
-     EX_temp.dReg = IF_S.dReg2;
-     EX_temp.PC = IF_S.PC2;
-     EX_temp.Addr = IF_S.Addr2;
-   }
-	 else
+    struct instruction EX_temp;
+   if(IF_S.type1 == ti_LOAD || IF_S.type1 == ti_STORE || IF_S.type1 == ti_NOP)
    {
      EX_temp.type = IF_S.type1;
      EX_temp.sReg_a = IF_S.sReg_a1;
      EX_temp.sReg_b = IF_S.sReg_b1;
      EX_temp.dReg = IF_S.dReg1;
      EX_temp.PC = IF_S.PC1;
-     EX_temp.Addr = IF_S.Addr1;   
+     EX_temp.Addr = IF_S.Addr1;
+   }
+     else
+   {
+     EX_temp.type = IF_S.type2;
+     EX_temp.sReg_a = IF_S.sReg_a2;
+     EX_temp.sReg_b = IF_S.sReg_b2;
+     EX_temp.dReg = IF_S.dReg2;
+     EX_temp.PC = IF_S.PC2;
+     EX_temp.Addr = IF_S.Addr2;   
    }
    return EX_temp;
 }
@@ -145,7 +218,8 @@ int main(int argc, char **argv)
   int trace_view_on = 0;
   int flush_counter = 4; //5 stage pipeline, so we have to move 4 instructions once trace is done
   int switch_buffer = 0;
-
+  int load_use_hazard = 0;
+  int control_hazard = 0;
 
 
   unsigned int cycle_number = 0;
@@ -171,13 +245,11 @@ int main(int argc, char **argv)
   trace_init();
 
   while(1) {
-  	if(switch_buffer == 0)
+  	if(!switch_buffer)
     	size = trace_get_item(&tr_entry); /* put the instruction into a buffer */
-    else
-    	tr_entry = tr_entry2;
-    //put one more instruction in the buffer;
-    
-
+    else if(!load_use_hazard && !control_hazard)
+    	tr_entry = tr_entry2;    
+    // If load-use hazard detected, no new instruction will be fetected
  	
     if (!size && flush_counter==0) {       /* no more instructions (instructions) to simulate */
       printf("+ Simulation terminates at cycle : %u\n", cycle_number);
@@ -193,15 +265,24 @@ int main(int argc, char **argv)
       MEM_2 = EX_2;
       EX = auto_upper_separate(ID_S);
       EX_2 = auto_lower_separate(ID_S);
-      ID_S = IF_S;
+
+      // Stalls the ID stage if Load-Use Hazard was detected
+      if (!load_use_hazard && !control_hazard){
+         ID_S = IF_S;
+      }
+      else{
+        // printf("Inserting No-ops! control = %d, load-use = %d \n", control_hazard, load_use_hazard);
+        ID_S.type1 = ti_NOP;
+        ID_S.type2 = ti_NOP;
+      }
 
       if(!size){    /* if no more instructions in trace, reduce flush_counter */
         flush_counter--;   
       }
-      else{   /* copy trace entry into IF stage */
+      else if(!load_use_hazard && !control_hazard){   /* copy trace entry into IF stage */
         
-        //move two instructions into one super-instruction
-		//--data hazard and control hazard
+          //move two instructions into one super-instruction
+		      //--data hazard and control hazard
 	        memcpy(&IF, tr_entry , sizeof(IF));
 	        IF_S = move_to_upper_superscalar(IF,IF_S);
 	        size = trace_get_item(&tr_entry2);
@@ -216,15 +297,27 @@ int main(int argc, char **argv)
 		        else 
 		        {
 		      	  IF_S.type2 = ti_NOP;
-				  switch_buffer = 1;
-	            }
+				      switch_buffer = 1;
+	          }
 	        }
-	       else{	
+	        else{	
 	          IF_S.type2 = ti_NOP;
 	          switch_buffer = 0;
 	        }
-
       }
+      load_use_hazard = 0;
+      control_hazard = 0;
+
+      // Load-Use Data Hazard detection
+      if (ID_S.type1 == ti_LOAD || ID_S.type2 == ti_LOAD){
+        load_use_hazard = load_use_detect(IF_S, ID_S);
+      }
+
+      // Control Hazard Detection - Predict Not Taken Scheme
+      if (ID_S.type1 == ti_BRANCH || ID_S.type2 == ti_BRANCH){
+        control_hazard = control_hazard_detect(IF_S, ID_S);
+      }
+
       // if(IF_S.type1 == ti_STORE || IF_S.type1 == ti_LOAD)
       // {
       //   WB_temp = WB;
