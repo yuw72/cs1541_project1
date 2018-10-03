@@ -68,7 +68,7 @@ int load_use_detect(struct super_instruction IF_S, struct super_instruction ID_S
     }
     else if(has_two_readRegs1(IF_S)){
       if (ID_S.dReg1 == IF_S.sReg_a1 || ID_S.dReg1 == IF_S.sReg_b1)
-        return 0;
+        return 1;
     }
     if (has_one_readReg2(IF_S)){
       if (ID_S.dReg1 == IF_S.sReg_a2)
@@ -76,7 +76,7 @@ int load_use_detect(struct super_instruction IF_S, struct super_instruction ID_S
     }
     else if(has_two_readRegs2(IF_S)){
       if (ID_S.dReg1 == IF_S.sReg_a2 || ID_S.dReg1 == IF_S.sReg_b2)
-        return 0;
+        return 1;
     }
   }
   else{
@@ -86,7 +86,7 @@ int load_use_detect(struct super_instruction IF_S, struct super_instruction ID_S
     }
     else if(has_two_readRegs1(IF_S)){
       if (ID_S.dReg2 == IF_S.sReg_a1 || ID_S.dReg2 == IF_S.sReg_b1)
-        return 0;
+        return 1;
     }
     if (has_one_readReg2(IF_S)){
       if (ID_S.dReg2 == IF_S.sReg_a2)
@@ -94,7 +94,7 @@ int load_use_detect(struct super_instruction IF_S, struct super_instruction ID_S
     }
     else if(has_two_readRegs2(IF_S)){
       if (ID_S.dReg2 == IF_S.sReg_a2 || ID_S.dReg2 == IF_S.sReg_b2)
-        return 0;
+        return 1;
     }
   }
   return 0;
