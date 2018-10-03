@@ -237,14 +237,15 @@ int main(int argc, char **argv)
   trace_init();
 
   while(1) {
-  	if(!switch_buffer)
+  	if(!switch_buffer && !load_use_hazard && !control_hazard)
     	size = trace_get_item(&tr_entry); /* put the instruction into a buffer */
     else if(!load_use_hazard && !control_hazard)
     	tr_entry = tr_entry2;    
  	 
-    if(load_use_hazard == 1 && size==0) flush_counter=5;
+    if((load_use_hazard == 1 || control_hazard == 1) && size==0) 
+      flush_counter=5;
 
-    if (!size && flush_counter==0) {       /* no more instructions (instructions) to simulate */
+    if (!size && !flush_counter) {       /* no more instructions (instructions) to simulate */
       printf("+ Simulation terminates at cycle : %u\n", cycle_number);
       break;
     }
@@ -280,6 +281,7 @@ int main(int argc, char **argv)
         memcpy(&IF, tr_entry , sizeof(IF));
         IF_S = move_to_upper_superscalar(IF,IF_S);
         size = trace_get_item(&tr_entry2);
+        // To make sure that 
         if(size) 
         {
           if(is_diff_pipeline(tr_entry, tr_entry2) && !data_hazard1(tr_entry,tr_entry2) && IF_S.type1 != ti_JTYPE && IF_S.type1 != ti_BRANCH)
@@ -299,6 +301,7 @@ int main(int argc, char **argv)
           switch_buffer = 0;
         }
       }
+
       load_use_hazard = 0;
       control_hazard = 0;
 
