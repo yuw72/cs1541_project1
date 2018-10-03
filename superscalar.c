@@ -241,7 +241,9 @@ int main(int argc, char **argv)
     	size = trace_get_item(&tr_entry); /* put the instruction into a buffer */
     else if(!load_use_hazard && !control_hazard)
     	tr_entry = tr_entry2;    
- 	
+ 	 
+    if(load_use_hazard == 1 && size==0) flush_counter=5;
+
     if (!size && flush_counter==0) {       /* no more instructions (instructions) to simulate */
       printf("+ Simulation terminates at cycle : %u\n", cycle_number);
       break;

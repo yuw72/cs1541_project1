@@ -125,6 +125,7 @@ int main(int argc, char **argv)
   	if ((!data_hazard)&& (!control_hazard)){
   		size = trace_get_item(&tr_entry); /* put the instruction into a buffer */
   	}
+     if(data_hazard == 1 && size==0) flush_counter=4;
     data_hazard = 0;
     control_hazard = 0;
 	
