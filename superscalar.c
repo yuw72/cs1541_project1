@@ -114,26 +114,23 @@ int control_hazard_detect(struct super_instruction IF_S, struct super_instructio
 
 struct super_instruction move_to_upper_superscalar(struct instruction IF,struct super_instruction IF_S)
 {
-	  IF_S.type1 = IF.type;
-	  IF_S.sReg_a1 = IF.sReg_a;
-	  IF_S.sReg_b1 = IF.sReg_b;
-	  IF_S.dReg1 = IF.dReg;
-	  IF_S.PC1 = IF.PC;
-	  IF_S.Addr1 = IF.Addr;
-  
+  IF_S.type1 = IF.type;
+  IF_S.sReg_a1 = IF.sReg_a;
+  IF_S.sReg_b1 = IF.sReg_b;
+  IF_S.dReg1 = IF.dReg;
+  IF_S.PC1 = IF.PC;
+  IF_S.Addr1 = IF.Addr; 
   return IF_S;
 }
 
 struct super_instruction move_to_lower_superscalar(struct instruction IF,struct super_instruction IF_S)
 {
-  
-    IF_S.type2 = IF.type;
-    IF_S.sReg_a2 = IF.sReg_a;
-    IF_S.sReg_b2 = IF.sReg_b;
-    IF_S.dReg2 = IF.dReg;
-    IF_S.PC2 = IF.PC;
-    IF_S.Addr2 = IF.Addr; 
-   
+  IF_S.type2 = IF.type;
+  IF_S.sReg_a2 = IF.sReg_a;
+  IF_S.sReg_b2 = IF.sReg_b;
+  IF_S.dReg2 = IF.dReg;
+  IF_S.PC2 = IF.PC;
+  IF_S.Addr2 = IF.Addr; 
   return IF_S;
 }
 
@@ -177,35 +174,32 @@ struct instruction auto_upper_separate(struct super_instruction IF_S)
      EX_temp.PC = IF_S.PC2;
      EX_temp.Addr = IF_S.Addr2;   
    }
-
    return EX_temp;
 }
 
 struct instruction auto_lower_separate(struct super_instruction IF_S)
 {
-    struct instruction EX_temp;
-   if(IF_S.type1 == ti_LOAD || IF_S.type1 == ti_STORE || IF_S.type1 == ti_NOP)
-   {
-     EX_temp.type = IF_S.type1;
-     EX_temp.sReg_a = IF_S.sReg_a1;
-     EX_temp.sReg_b = IF_S.sReg_b1;
-     EX_temp.dReg = IF_S.dReg1;
-     EX_temp.PC = IF_S.PC1;
-     EX_temp.Addr = IF_S.Addr1;
-   }
-     else
-   {
-     EX_temp.type = IF_S.type2;
-     EX_temp.sReg_a = IF_S.sReg_a2;
-     EX_temp.sReg_b = IF_S.sReg_b2;
-     EX_temp.dReg = IF_S.dReg2;
-     EX_temp.PC = IF_S.PC2;
-     EX_temp.Addr = IF_S.Addr2;   
-   }
-   return EX_temp;
+  struct instruction EX_temp;
+  if(IF_S.type1 == ti_LOAD || IF_S.type1 == ti_STORE || IF_S.type1 == ti_NOP)
+  {
+   EX_temp.type = IF_S.type1;
+   EX_temp.sReg_a = IF_S.sReg_a1;
+   EX_temp.sReg_b = IF_S.sReg_b1;
+   EX_temp.dReg = IF_S.dReg1;
+   EX_temp.PC = IF_S.PC1;
+   EX_temp.Addr = IF_S.Addr1;
+  }
+  else
+  {
+   EX_temp.type = IF_S.type2;
+   EX_temp.sReg_a = IF_S.sReg_a2;
+   EX_temp.sReg_b = IF_S.sReg_b2;
+   EX_temp.dReg = IF_S.dReg2;
+   EX_temp.PC = IF_S.PC2;
+   EX_temp.Addr = IF_S.Addr2;   
+  }
+  return EX_temp;
 }
-
-
 
 int main(int argc, char **argv)
 {
@@ -220,8 +214,6 @@ int main(int argc, char **argv)
   int switch_buffer = 0;
   int load_use_hazard = 0;
   int control_hazard = 0;
-
-
   unsigned int cycle_number = 0;
 
   if (argc == 1) {
@@ -249,15 +241,14 @@ int main(int argc, char **argv)
     	size = trace_get_item(&tr_entry); /* put the instruction into a buffer */
     else if(!load_use_hazard && !control_hazard)
     	tr_entry = tr_entry2;    
-    // If load-use hazard detected, no new instruction will be fetected
  	
     if (!size && flush_counter==0) {       /* no more instructions (instructions) to simulate */
       printf("+ Simulation terminates at cycle : %u\n", cycle_number);
       break;
     }
-    else{              /* move the pipeline forward */
+    else{              
+      /* move the pipeline forward */
       cycle_number++;
-
       /* move instructions one stage ahead */
       WB = MEM;
       WB_2 = MEM_2;
@@ -276,34 +267,35 @@ int main(int argc, char **argv)
         ID_S.type2 = ti_NOP;
       }
 
-      if(!size){    /* if no more instructions in trace, reduce flush_counter */
+      if(!size){    
+        /* if no more instructions in trace, reduce flush_counter */
         flush_counter--;   
       }
-      else if(!load_use_hazard && !control_hazard){   /* copy trace entry into IF stage */
-        
-          //move two instructions into one super-instruction
-		      //--data hazard and control hazard
-	        memcpy(&IF, tr_entry , sizeof(IF));
-	        IF_S = move_to_upper_superscalar(IF,IF_S);
-	        size = trace_get_item(&tr_entry2);
-	        if(size) 
+      else if(!load_use_hazard && !control_hazard){ 
+        /* copy trace entry into IF stage */
+        //move two instructions into one super-instruction
+	      //--data hazard and control hazard
+        memcpy(&IF, tr_entry , sizeof(IF));
+        IF_S = move_to_upper_superscalar(IF,IF_S);
+        size = trace_get_item(&tr_entry2);
+        if(size) 
+        {
+          if(is_diff_pipeline(tr_entry, tr_entry2) && !data_hazard1(tr_entry,tr_entry2) && IF_S.type1 != ti_JTYPE && IF_S.type1 != ti_BRANCH)
+	        {	
+	          memcpy(&IF, tr_entry2 , sizeof(IF));
+	          IF_S = move_to_lower_superscalar(IF, IF_S);
+	          switch_buffer=0;
+	        }
+	        else 
 	        {
-	          if(is_diff_pipeline(tr_entry, tr_entry2) && !data_hazard1(tr_entry,tr_entry2) && IF_S.type1 != ti_JTYPE && IF_S.type1 != ti_BRANCH)
-		        {	
-		          memcpy(&IF, tr_entry2 , sizeof(IF));
-		          IF_S = move_to_lower_superscalar(IF, IF_S);
-		          switch_buffer=0;
-		        }
-		        else 
-		        {
-		      	  IF_S.type2 = ti_NOP;
-				      switch_buffer = 1;
-	          }
-	        }
-	        else{	
-	          IF_S.type2 = ti_NOP;
-	          switch_buffer = 0;
-	        }
+	      	  IF_S.type2 = ti_NOP;
+			      switch_buffer = 1;
+          }
+        }
+        else{	
+          IF_S.type2 = ti_NOP;
+          switch_buffer = 0;
+        }
       }
       load_use_hazard = 0;
       control_hazard = 0;
@@ -317,18 +309,10 @@ int main(int argc, char **argv)
       if (ID_S.type1 == ti_BRANCH || ID_S.type2 == ti_BRANCH){
         control_hazard = control_hazard_detect(IF_S, ID_S);
       }
-
-      // if(IF_S.type1 == ti_STORE || IF_S.type1 == ti_LOAD)
-      // {
-      //   WB_temp = WB;
-      //   WB = WB_2;
-      //   WB_2 = WB_temp;
-      // }
-      //printf("==============================================================================\n");
     }  
 
-
-    if (trace_view_on && cycle_number>=5) {/* print the executed instruction if trace_view_on=1 */
+    if (trace_view_on && cycle_number>=5) {
+      /* print the executed instruction if trace_view_on=1 */
       switch(WB.type) {
         case ti_NOP:
           printf("[cycle %d] NOP:\n",cycle_number) ;
@@ -406,7 +390,6 @@ int main(int argc, char **argv)
   }
 
   trace_uninit();
-
   exit(0);
 }
 
