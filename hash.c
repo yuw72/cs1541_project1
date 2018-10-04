@@ -17,7 +17,7 @@ struct DataItem* item;
 
 int hashCode(int key) {
    int index=five_bit_convert(key);
-   //printf("index is %d",index);
+   
    return index;
 }
 
@@ -64,8 +64,9 @@ void insert(int key,int data, int target_addr ) {
    int hashIndex = hashCode(key);
 
    //move in array until an empty or deleted cell	
+
    hashArray[hashIndex] = item;
-   free(item);
+   
 }
 
 
@@ -73,7 +74,7 @@ void display() {
    int i = 0;
 	
    for(i = 0; i<SIZE; i++) {
-	
+	    
       if(hashArray[i] != NULL)
          printf(" (%d,%d,%d)",hashArray[i]->key,hashArray[i]->data,hashArray[i]->target_addr);
       else

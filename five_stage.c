@@ -1,8 +1,8 @@
 /**************************************************************/
-/* CS/COE 1541				 			
-   compile with gcc -o pipeline five_stage.c			
-   and execute using							
-   ./pipeline  /afs/cs.pitt.edu/courses/1541/short_traces/sample.tr	0  
+/* CS/COE 1541              
+   compile with gcc -o pipeline five_stage.c      
+   and execute using              
+   ./pipeline  /afs/cs.pitt.edu/courses/1541/short_traces/sample.tr 0  
 ***************************************************************/
 // Team Name: Alex Blackson, Yuchao Wang, Nick West
 
@@ -22,8 +22,9 @@ int data_hazard_condition2(struct  instruction IF)
   return (IF.type == ti_ITYPE || IF.type == ti_JRTYPE || IF.type == ti_LOAD); 
 }
 
-int branch_not_taken(struct  instruction IF, struct instruction ID)
+int branch_not_taken(struct  instruction IF, struct instruction ID, int size)
 {
+  if(size==0) return 1;
   if((ID.PC+4==IF.PC))
     return 1;
   else 
@@ -44,6 +45,9 @@ int search_hashtable(struct instruction IF)
 {
   int key=IF.PC;
   item = search(key);
+  if(item == NULL)
+    return 0;
+  //printf("PC %d search data value %d \n",IF.PC,item->data);
   return item->data; 
 }
 
@@ -51,12 +55,15 @@ int branch_PC_match(struct instruction IF)
 {
   int key = IF.PC;
   item = search(key);
+
   return key==item->key;
 }
 
 int check_prediction(struct instruction IF, struct instruction ID, int taken_or_not)
 {
+ // printf("taken_or_not = %d\n", taken_or_not);
   int truly_taken_or_not = branch_taken(IF,ID);
+ // printf("truly_taken_or_not = %d\n", truly_taken_or_not );
   return taken_or_not == truly_taken_or_not;
 }
 
@@ -72,6 +79,7 @@ void overwrite_hashtable(struct instruction ID, int is_taken)
 {
   int key = ID.PC;
   insert(key, is_taken, ID.Addr);
+  //printf("the value in key %d is %d\n", key, search(key)->data);
 }
 
 
@@ -88,7 +96,10 @@ int main(int argc, char **argv)
   int data_hazard = 0;
   int control_hazard = 0;
   int taken_or_not = 0;   // branch detection in IF stage
+  int is_taken = 0;
   int overwrite = 0;      // hash table overwritten.
+  int overwrite_D = 0;
+  int write_en = 0 ;
   int is_match = 0;
   unsigned int cycle_number = 0;
 
@@ -122,13 +133,12 @@ int main(int argc, char **argv)
   trace_init();
 
   while(1) {
-  	if ((!data_hazard)&& (!control_hazard)){
-  		size = trace_get_item(&tr_entry); /* put the instruction into a buffer */
-  	}
+    if ((!data_hazard)&& (!control_hazard)){
+      size = trace_get_item(&tr_entry); /* put the instruction into a buffer */
+    }
      if((data_hazard == 1 || control_hazard == 1)  && size==0) flush_counter=4;
     data_hazard = 0;
     control_hazard = 0;
-	
     if (!size && flush_counter==0) 
     {       
       /* no more instructions (instructions) to simulate */
@@ -140,36 +150,70 @@ int main(int argc, char **argv)
       cycle_number++;
       /* move instructions one stage ahead */
 
-  	  // Data Hazard Detection
-    	if (ID.type == ti_LOAD)
+      // Data Hazard Detection
+      if (ID.type == ti_LOAD)
       {
-    		if (data_hazard_condition(IF))
+        if (data_hazard_condition(IF))
         {
-    			if (ID.dReg == IF.sReg_a || ID.dReg == IF.sReg_b){
-    				data_hazard = 1;
-    				WB = MEM;
-    				MEM = EX;
-    				EX = ID;
-    				ID.type = ti_NOP;
-    				IF = IF;
-    			}
-    		}
-    		else if (data_hazard_condition2(IF))
-    		{
-      		if (ID.dReg == IF.sReg_a)
-    			{
-    				data_hazard = 1;
-    				WB = MEM;
-    				MEM = EX;
-    				EX = ID;
-    				ID.type = ti_NOP;
-    				IF = IF;
-    			}
-      	}
+          if (ID.dReg == IF.sReg_a || ID.dReg == IF.sReg_b){
+            data_hazard = 1;
+            WB = MEM;
+            MEM = EX;
+            EX = ID;
+            ID.type = ti_NOP;
+            IF = IF;
+          }
+        }
+        else if (data_hazard_condition2(IF))
+        {
+          if (ID.dReg == IF.sReg_a)
+          {
+            data_hazard = 1;
+            WB = MEM;
+            MEM = EX;
+            EX = ID;
+            ID.type = ti_NOP;
+            IF = IF;
+          }
+        }
       }
-	  
+    
       // Handling control hazards 
       if (prediction_method){
+
+        
+
+        if(ID.type == ti_BRANCH)
+        {
+          is_match = check_prediction(IF,ID,taken_or_not);
+           //printf("PC %d match = %d\n",ID.PC,is_match);
+          if(is_match)
+          {
+            
+            control_hazard = 0;
+            overwrite = 0;
+          }
+          else
+          {
+
+            control_hazard =1;
+            overwrite = 1;
+          //  printf("before = %d\n", taken_or_not );
+            taken_or_not =  abs(taken_or_not-1);
+           // printf("after = %d\n", taken_or_not );
+            WB = MEM;
+            MEM = EX;
+            EX = ID;
+            ID.type = ti_NOP;
+            IF = IF;
+          }
+          //printf("I want to overwrite = %d\n",overwrite);
+          if(overwrite == 1){
+            overwrite_hashtable(ID, taken_or_not);
+            
+          }
+        }
+
         if(IF.type == ti_BRANCH)
         {
           if(nothing_in_hashtable(IF))
@@ -180,37 +224,14 @@ int main(int argc, char **argv)
           else
           {
              taken_or_not = search_hashtable(IF);
-            if(branch_PC_match(IF))
-              overwrite=1;
-            else             
-              overwrite=0;
+            overwrite = 1 ;
           }
         }
-        if(ID.type == ti_BRANCH)
-        {
-          is_match = check_prediction(IF,ID,taken_or_not);
-          if(is_match)
-            control_hazard = 0;
-          else
-          {
-            control_hazard =1;
-            overwrite = 1;
-            taken_or_not =  abs(taken_or_not-1);
-            WB = MEM;
-            MEM = EX;
-            EX = ID;
-            ID.type = ti_NOP;
-            IF = IF;
-          }
-
-          if(overwrite == 1)
-            overwrite_hashtable(ID, taken_or_not);
-        }
-    	}
-    	else{
+    }
+    else{
         if (ID.type == ti_BRANCH)
         {
-          if(branch_not_taken(IF,ID))
+          if(branch_not_taken(IF,ID,size))
           {
               control_hazard = 0;
           }
@@ -224,14 +245,16 @@ int main(int argc, char **argv)
             IF = IF;
           }
         }
-    	}
-  		
+    }
+      
+
       if (!data_hazard && !control_hazard)
       {
-    	  WB = MEM;
-    	  MEM = EX;
-    	  EX = ID;
-    	  ID = IF;
+
+        WB = MEM;
+        MEM = EX;
+        EX = ID;
+        ID = IF;
       }     
 
       if(!size)
@@ -240,11 +263,13 @@ int main(int argc, char **argv)
       }
       else
       {   /* copy trace entry into IF stage */
-    		if (!data_hazard && (!control_hazard))
+        if (!data_hazard && (!control_hazard))
         {
-    			memcpy(&IF, tr_entry , sizeof(IF));
-    		}
-      }   	
+          memcpy(&IF, tr_entry , sizeof(IF));
+        }
+      }     
+
+  
 
     }  
 
@@ -279,7 +304,7 @@ int main(int argc, char **argv)
           printf(" (PC: %d)(addr: %d)\n", WB.PC,WB.Addr);
           break;
         case ti_SPECIAL:
-          printf("[cycle %d] SPECIAL:\n",cycle_number) ;      	
+          printf("[cycle %d] SPECIAL:\n",cycle_number) ;        
           break;
         case ti_JRTYPE:
           printf("[cycle %d] JRTYPE:",cycle_number) ;
