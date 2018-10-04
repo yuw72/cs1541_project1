@@ -319,6 +319,11 @@ int main(int argc, char **argv)
       if (ID_S.type1 == ti_BRANCH || ID_S.type2 == ti_BRANCH){
         control_hazard = control_hazard_detect(IF_S, ID_S);
       }
+      if(size == 0)
+      {
+        control_hazard = 0 ;
+        load_use_hazard = 0 ;
+      }
     }  
 
     if (trace_view_on && cycle_number>=5) {
