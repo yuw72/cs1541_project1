@@ -322,7 +322,6 @@ int main(int argc, char **argv)
       if(size == 0)
       {
         control_hazard = 0 ;
-        load_use_hazard = 0 ;
       }
     }  
 
