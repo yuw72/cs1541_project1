@@ -1,6 +1,10 @@
 /**************************************************************/
-/* CS/COE 1541				 			
-   compile with gcc -o pipeline five_stage.c			
+/* 
+   Alex Blackson
+   Yuchao Wang
+   Nick West
+   CS/COE 1541				 			
+   compile with gcc -o pipeline superscalar.c			
    and execute using							
    ./pipeline  /afs/cs.pitt.edu/courses/1541/short_traces/sample.tr	0  
 ***************************************************************/
@@ -241,7 +245,8 @@ int main(int argc, char **argv)
     	size = trace_get_item(&tr_entry); /* put the instruction into a buffer */
     else if(!load_use_hazard && !control_hazard)
     	tr_entry = tr_entry2;    
- 	 
+ 	  
+    // Prevents earlier termination due to hazards
     if((load_use_hazard == 1 || control_hazard == 1) && size==0) 
       flush_counter=5;
 
@@ -281,7 +286,7 @@ int main(int argc, char **argv)
         memcpy(&IF, tr_entry , sizeof(IF));
         IF_S = move_to_upper_superscalar(IF,IF_S);
         size = trace_get_item(&tr_entry2);
-        // To make sure that 
+        // If no instructions left, bottom half of superinstruction will be empty
         if(size) 
         {
           if(is_diff_pipeline(tr_entry, tr_entry2) && !data_hazard1(tr_entry,tr_entry2) && IF_S.type1 != ti_JTYPE && IF_S.type1 != ti_BRANCH)
