@@ -289,7 +289,7 @@ int main(int argc, char **argv)
         // If no instructions left, bottom half of superinstruction will be empty
         if(size) 
         {
-          if(is_diff_pipeline(tr_entry, tr_entry2) && !data_hazard1(tr_entry,tr_entry2) && IF_S.type1 != ti_JTYPE && IF_S.type1 != ti_BRANCH)
+          if(is_diff_pipeline(tr_entry, tr_entry2) && !data_hazard1(tr_entry,tr_entry2) && IF_S.type1 != ti_JTYPE && IF_S.type1 != ti_JRTYPE  && IF_S.type1 != ti_BRANCH)
 	        {	
 	          memcpy(&IF, tr_entry2 , sizeof(IF));
 	          IF_S = move_to_lower_superscalar(IF, IF_S);
