@@ -321,9 +321,16 @@ int main(int argc, char **argv)
       }
       if(size == 0)
       {
+        if(flush_counter!=4)
         control_hazard = 0 ;
       }
     }  
+
+    // printf("ID is %d\n",ID_S.PC1);
+    // printf("IF is %d\n", IF_S.PC1);
+    // printf("control_hazard: %d\n",control_hazard);
+    // printf("flush_counter %d\n",flush_counter);
+
 
     if (trace_view_on && cycle_number>=5) {
       /* print the executed instruction if trace_view_on=1 */
