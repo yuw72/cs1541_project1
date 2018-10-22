@@ -270,7 +270,6 @@ int main(int argc, char **argv)
          ID_S = IF_S;
       }
       else{
-        // printf("Inserting No-ops! control = %d, load-use = %d \n", control_hazard, load_use_hazard);
         ID_S.type1 = ti_NOP;
         ID_S.type2 = ti_NOP;
       }
@@ -325,12 +324,6 @@ int main(int argc, char **argv)
         control_hazard = 0 ;
       }
     }  
-
-    // printf("ID is %d\n",ID_S.PC1);
-    // printf("IF is %d\n", IF_S.PC1);
-    // printf("control_hazard: %d\n",control_hazard);
-    // printf("flush_counter %d\n",flush_counter);
-
 
     if (trace_view_on && cycle_number>=5) {
       /* print the executed instruction if trace_view_on=1 */
